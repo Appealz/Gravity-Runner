@@ -5,6 +5,17 @@ Unity/C#으로 개발한 모바일 원터치 중력 반전 러너 게임입니�
 개인 프로젝트로 개발하여 Google Play 출시까지 완료했으며,  
 개발 및 기능 확장 과정에서 캐릭터 시스템, 계정 데이터, 랭킹, 광고 제어 등의 기능을 구현했습니다.
 
+## Screenshots
+
+### Lobby
+![Lobby](Docs/Image/lobby.png)
+
+### Gameplay
+![Gameplay](Docs/Image/gameplay.png)
+
+### Character Select
+![Character Select](Docs/Image/character-select.png)
+
 > 본 저장소는 취업 포트폴리오를 위한 코드 공개 저장소입니다.  
 > 외부 에셋과 서비스 설정 파일은 제외하고 직접 작성한 주요 C# 코드를 정리했습니다.
 
