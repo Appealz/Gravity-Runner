@@ -22,7 +22,7 @@ public class LobbyPresenter
 
         view.PlayBtn.onClick.AddListener(OnPlayClicked);
         view.OptionBtn.onClick.AddListener(OpenOptionClicked);
-        view.RankBtn.onClick.AddListener(() => OnRankClicked());
+        view.RankBtn.onClick.AddListener(OnRankClicked);
         view.BGMSlider.onValueChanged.AddListener(OnBGMVolumeChanged);
         view.SFXSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
         view.CloseOptionBtn.onClick.AddListener(CloseOptionCliked); 
@@ -31,6 +31,9 @@ public class LobbyPresenter
        
         view.ExitCanceledBtn.onClick.AddListener(OnClickCancel);
         view.ExitBtn.onClick.AddListener(OnClickExit);
+
+        view.GuestStartBtn.onClick.AddListener(OnGuestStart);
+        view.GuestCancelBtn.onClick.AddListener(OnGuestCancel);
 
         inputActions = new PlayerInputSystem();
         inputActions.UI.Enable();
@@ -55,8 +58,6 @@ public class LobbyPresenter
 
     private async UniTaskVoid HandleInitialSignInState()
     {
-        // [중요] GPGSManager.Start의 Delay(500)보다 살짝 더 기다려야 
-        // IsAuthenticating이 true가 된 것을 확인할 수 있음
         await UniTask.Delay(600);
 
         if (!GPGSManager.Instance.IsAuthenticating)
@@ -66,16 +67,10 @@ public class LobbyPresenter
             return;
         }
 
-        // 로그인 중이면 깜빡임 시작
         view.SetLoadingState(true);
 
-        // 최대 6초 대기 (이후엔 타임아웃으로 강제 진행)
-        try
-        {
-            await UniTask.WaitUntil(() => !GPGSManager.Instance.IsAuthenticating)
-                         .Timeout(TimeSpan.FromSeconds(6));
-        }
-        catch { }
+        await UniTask.WaitUntil(
+            () => !GPGSManager.Instance.IsAuthenticating);
 
         view.SetLoadingState(false);
         view.RefreshLoginUI();
@@ -86,18 +81,15 @@ public class LobbyPresenter
         rankPresenter = newRank;
     }
 
-    private async void OnPlayClicked()
+    private void OnPlayClicked()
     {
-        // 8번 항목: 비로그인 상태로 Play 시 토스트 메시지 출력
-        if (!PlayGamesPlatform.Instance.IsAuthenticated())
+        if (!GPGSManager.Instance.IsGoogleUser)
         {
-            GPGSManager.Instance.ShowToast("게스트 계정은 랭킹에 기록되지 않습니다.");
+            view.ShowGuestStart();
+            return;
         }
 
-        await Addressables.InitializeAsync().ToUniTask();
-        SoundManager.Instance.PlaySFX("GameStart");
-        SoundManager.Instance.StopBGM();
-        await FadeManager.Instance.WaitToSceneLoad(model.MainSceneName);
+        StartGame();
     }
 
     private void OpenOptionClicked()
@@ -213,11 +205,43 @@ public class LobbyPresenter
     }
 
 
+    private async void StartGame()
+    {
+        view.HideGuestStart();
 
+        await Addressables.InitializeAsync().ToUniTask();
+
+        SoundManager.Instance.PlaySFX("GameStart");
+        SoundManager.Instance.StopBGM();
+
+        await FadeManager.Instance.WaitToSceneLoad(model.MainSceneName);
+    }
+
+    private void OnGuestStart()
+    {
+        StartGame();
+    }
+
+    private void OnGuestCancel()
+    {
+        view.HideGuestStart();
+    }
 
     public void Dispose()
     {
+        view.PlayBtn.onClick.RemoveListener(OnPlayClicked);
+        view.OptionBtn.onClick.RemoveListener(OpenOptionClicked);
+        view.BGMSlider.onValueChanged.RemoveListener(OnBGMVolumeChanged);
+        view.SFXSlider.onValueChanged.RemoveListener(OnSFXVolumeChanged);
+        view.CloseOptionBtn.onClick.RemoveListener(CloseOptionCliked);
+        view.ExitCanceledBtn.onClick.RemoveListener(OnClickCancel);
+        view.ExitBtn.onClick.RemoveListener(OnClickExit);
+        view.CharacterBtn.onClick.RemoveListener(OnClickCharacter);
+        view.LoginBtn.onClick.RemoveListener(OnClickLogin);
+        view.RankBtn.onClick.RemoveListener(OnRankClicked);
         inputActions.UI.Cancel.performed -= OnExit;
+        inputActions.UI.Disable();
+
         if (GPGSManager.Instance != null)
             GPGSManager.Instance.OnLoginProcessCompleted -= OnLoginCompleted;
     }

@@ -20,38 +20,46 @@ public class RankPresenter
         view.Clear();
         view.gameObject.SetActive(true);
 
-        bool hasInternet = Application.internetReachability != NetworkReachability.NotReachable;
-        bool isGoogleUser = !AccountManager.Instance.IsGuestAccount;
+        bool isGoogleUser = GPGSManager.Instance.IsGoogleUser && GPGSManager.Instance.IsAuthenticatedNow;
 
-        if (hasInternet)
-        {
-            await model.LoadGPGSRankAsync();
-
-            RankData myDisplayData;
-            if (isGoogleUser)
-            {
-                myDisplayData = model.GetMyRank() ?? new RankData(-1, myName, myScore, "me");
-            }
-            else
-            {
-                // [추가] 게스트 계정일 때 안내 메시지 출력
-                GPGSManager.Instance.ShowToast("게스트 계정은 실시간 랭킹에 반영되지 않습니다.");
-                myDisplayData = new RankData(-1, myName, myScore, "guest");
-            }
-
-            view.SetRows(model.GetRankList(), myDisplayData);
-        }
-        else
+        // Guest 또는 Google 인증이 없는 상태
+        if (!isGoogleUser)
         {
             model.LoadOfflineMyData(myName, myScore);
             view.SetRows(model.GetRankList(), model.GetMyRank());
-            GPGSManager.Instance.ShowToast("네트워크 연결이 없어 로컬 기록만 표시합니다.");
+
+            GPGSManager.Instance.ShowToast("Sign in to view the leaderboard.");
+
+            return;
         }
+
+        // Google 로그인 상태지만 네트워크 없음
+        if (!GPGSManager.Instance.IsNetworkConnected())
+        {
+            model.LoadOfflineMyData(myName, myScore);
+            view.SetRows(model.GetRankList(), model.GetMyRank());
+
+            GPGSManager.Instance.ShowToast("Network unavailable. Showing local record.");
+
+            return;
+        }
+
+        // 정상 Google 로그인
+        await model.LoadGPGSRankAsync();
+
+        RankData myDisplayData = model.GetMyRank() ?? new RankData(-1, myName, myScore, "me");
+
+        view.SetRows(model.GetRankList(), myDisplayData);
     }
 
     private void Hide()
     {
         SoundManager.Instance.PlaySFX("TouchClose");
         view.Hide();
+    }
+
+    public void Dispose()
+    {
+        view.CloseBtn.onClick.RemoveListener(Hide);
     }
 }

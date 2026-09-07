@@ -42,6 +42,14 @@ public class PausePresenter
     public void Dispose()
     {
         EventBus.Unsubscribe<OnPauseEvent>(OnPauseEventHandle);
+
+        view.ResumeBtn.onClick.RemoveListener(OnResume);
+        view.ExitBtn.onClick.RemoveListener(OnResume);
+        view.ReturnLobbyBtn.onClick.RemoveListener(OnReturnLobby);
+        view.RestartBtn.onClick.RemoveListener(OnRestart);
+
+        view.BGMSlider.onValueChanged.RemoveListener(OnBGMVolumeChanged);
+        view.SFXSlider.onValueChanged.RemoveListener(OnSFXVolumeChanged);
     }
 
     private void OnBGMVolumeChanged(float value)
@@ -56,14 +64,37 @@ public class PausePresenter
         SoundManager.Instance.SetSFXVolume(value);
     }
 
-    private void OnRestart()
-    {        
+    private async void OnRestart()
+    {
+        bool validRun = PlaySessionManager.Instance.EndRun();
+
+        ScoreManager scoreManager = GameManager.Instance.GetManager<ScoreManager>();
+
+        if (scoreManager != null)
+            await scoreManager.FinalizeRunScore(validRun);
+
+        await CurrencyManager.Instance.FinalizeRunCoin(validRun);
+
+        Time.timeScale = 1f;
+
         view.Hide();
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    private void OnReturnLobby()
-    {        
+    private async void OnReturnLobby()
+    {
+        bool validRun = PlaySessionManager.Instance.EndRun();
+
+        ScoreManager scoreManager = GameManager.Instance.GetManager<ScoreManager>();
+
+        if (scoreManager != null)
+            await scoreManager.FinalizeRunScore(validRun);
+
+        await CurrencyManager.Instance.FinalizeRunCoin(validRun);
+
+        Time.timeScale = 1f;
+
         SceneManager.LoadScene("LobbyScene");
     }
 }

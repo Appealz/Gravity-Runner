@@ -86,43 +86,87 @@ public class ScoreManager : BaseManager
         EventBus.Unsubscribe<ChangeDifficultyEvent>(OnChangeLevelEvent);
     }
 
-    public async void PublishFinalScore()
+    public void PublishFinalScore()
     {
-        totalScore = Mathf.Floor(totalScore);
-        bool isNewHigh = totalScore > highScore;
+        float finalScore = Mathf.Floor(totalScore);
 
-        // [로직 1, 3번] 실시간 인증 상태 및 네트워크 연결 체크
-        bool isOnline = PlayGamesPlatform.Instance.IsAuthenticated() && GPGSManager.Instance.IsNetworkConnected();
+        bool isNewHigh =
+            finalScore > highScore;
 
-        if (isOnline)
+
+        // ============================================
+        // Guest
+        //
+        // 랭킹에는 절대 등록하지 않지만
+        // Guest 전용 로컬 최고점수는 저장 가능
+        // ============================================
+        if (GPGSManager.Instance != null &&
+            GPGSManager.Instance.IsGuest)
         {
-            // --- 온라인: 모든 데이터(코인, 점수, 리더보드) 등록 ---
             if (isNewHigh)
             {
-                highScore = totalScore;
-                AccountManager.Instance.currentAccountData.bestScore = (long)highScore;
-                AccountManager.Instance.ReportScoreToLeaderboard((long)highScore); //
+                highScore = finalScore;
+
+
+                if (AccountManager.Instance.currentAccountData != null)
+                {
+                    AccountManager.Instance
+                        .currentAccountData
+                        .bestScore = (long)highScore;
+
+                    AccountManager.Instance.SaveLocalBackup();
+                }
             }
 
-            // 코인 누적 로직 (예시: totalScore의 10%를 코인으로 환산)
-            // AccountManager.Instance.currentAccountData.coin += (int)(totalScore * 0.1f);
 
-            await AccountManager.Instance.SaveToCloud(); //
-            Debug.Log("[ScoreManager] 온라인 저장 완료: 모든 데이터 동기화");
-        }
-        else
-        {
-            // --- 오프라인: 하이스코어만 로컬 기록 (로직 3번) ---
-            if (isNewHigh)
-            {
-                highScore = totalScore;
-                AccountManager.Instance.currentAccountData.bestScore = (long)highScore;
-                AccountManager.Instance.SaveLocalBackup(); //
-                Debug.Log("[ScoreManager] 오프라인: 하이스코어만 로컬에 기록됨 (코인/랭킹 미반영)");
-            }
+            EventBus.Publish(
+                new FinalScoreEvent(
+                    finalScore,
+                    highScore,
+                    isNewHigh));
+
+
+            Debug.Log(
+                $"[ScoreManager] Guest 점수 표시 / " +
+                $"Score: {finalScore}, High: {highScore}");
+
+            return;
         }
 
-        EventBus.Publish(new FinalScoreEvent(totalScore, highScore, isNewHigh && isOnline));
+
+        // ============================================
+        // Google 플레이
+        //
+        // 아직 실제 저장은 하지 않는다.
+        // 현재 GameOver UI에 보여줄 값만 계산한다.
+        // ============================================
+        bool validRun =
+            PlaySessionManager.Instance != null &&
+            PlaySessionManager.Instance.IsRunActive &&
+            PlaySessionManager.Instance.IsValidRun;
+
+
+        bool showAsNewHigh =
+            validRun && isNewHigh;
+
+
+        float displayHighScore =
+            showAsNewHigh
+                ? finalScore
+                : highScore;
+
+
+        EventBus.Publish(
+            new FinalScoreEvent(
+                finalScore,
+                displayHighScore,
+                showAsNewHigh));
+
+
+        Debug.Log(
+            $"[ScoreManager] 점수 표시 / " +
+            $"Score: {finalScore}, " +
+            $"Valid: {validRun}");
     }
 
     public void SetEnable(bool setEnable)
@@ -133,6 +177,96 @@ public class ScoreManager : BaseManager
     private void OnChangeLevelEvent(ChangeDifficultyEvent evt)
     {
         level = evt.level;
+    }
+
+    public async UniTask FinalizeRunScore(bool validRun)
+    {
+        float finalScore =
+            Mathf.Floor(totalScore);
+
+
+        // ============================================
+        // Invalid / Guest 판은 Google 기록 금지
+        // ============================================
+        if (!validRun ||
+            GPGSManager.Instance == null ||
+            !GPGSManager.Instance.IsGoogleUser ||
+            !GPGSManager.Instance.IsAuthenticatedNow)
+        {
+            Debug.Log(
+                $"[ScoreManager] Unranked 점수 폐기: {finalScore}");
+
+            return;
+        }
+
+
+        var account =
+            AccountManager.Instance.currentAccountData;
+
+
+        if (account == null)
+            return;
+
+
+        // 기존 최고점수를 못 넘었으면
+        // 저장할 점수 변화가 없음
+        if (finalScore <= highScore)
+        {
+            Debug.Log(
+                $"[ScoreManager] 최고점수 갱신 없음: {finalScore}");
+
+            return;
+        }
+
+
+        // 실패 시 되돌리기 위해 이전 값 보관
+        float previousHighScore =
+            highScore;
+
+        long previousAccountBest =
+            account.bestScore;
+
+
+        // ============================================
+        // 새로운 최고점수 메모리에 반영
+        // ============================================
+        highScore = finalScore;
+        account.bestScore = (long)finalScore;
+
+
+        // ============================================
+        // Cloud 저장
+        // ============================================
+        bool saveSuccess =
+            await AccountManager.Instance.SaveToCloud();
+
+
+        if (!saveSuccess)
+        {
+            // Cloud에 기록하지 못했으므로
+            // Google 계정 데이터도 이전 상태로 복구
+            highScore = previousHighScore;
+            account.bestScore = previousAccountBest;
+
+            AccountManager.Instance.SaveLocalBackup();
+
+
+            Debug.LogWarning(
+                "[ScoreManager] Cloud 저장 실패 -> 최고점수 롤백");
+
+            return;
+        }
+
+
+        // ============================================
+        // Cloud 저장 성공 후에만 랭킹 등록
+        // ============================================
+        AccountManager.Instance.ReportScoreToLeaderboard(
+            (long)highScore);
+
+
+        Debug.Log(
+            $"[ScoreManager] 최고점수 확정: {highScore}");
     }
 }
 

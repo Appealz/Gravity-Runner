@@ -15,4 +15,8 @@ public class CharacterRuntimeData
     {
         IsUnlocked = true;
     }
+    public void SetUnlocked(bool unlocked)
+    {
+        IsUnlocked = unlocked || BaseData.defaultUnlocked;
+    }
 }

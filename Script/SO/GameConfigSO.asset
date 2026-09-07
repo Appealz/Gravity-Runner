@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3fea64fcd2b0d74c9c4f3f790fa6991, type: 3}
+  m_Name: GameConfigSO
+  m_EditorClassIdentifier: Assembly-CSharp::GameConfigSO
+  baseMoveSpeed: 5
+  chunkLength: 40
+  speedMultiplier: 1.1
+  maxSpeed: 20
+  speedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.0050099194
+      value: 1.1998961
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 3.9863005
+      value: 1.2001734
+      inSlope: 0.00006964596
+      outSlope: -0.03958006
+      tangentMode: 5
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 5.013969
+      value: 1.1007193
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 8.031557
+      value: 1.1006567
+      inSlope: -0.000020740034
+      outSlope: 0.0023339067
+      tangentMode: 5
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 9.989895
+      value: 1.1506519
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 136
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  difficultyInterval: 15
+  initialGrowth: 1
+  growthIncreaseStep: 0.5
+  baseScorePerSecond: 3.5
+  baseSpawnTime: 7
+  minSpawnFactor: 0.5
+  maxSpawnFactor: 1.5
+  minSpawnLimit: 4

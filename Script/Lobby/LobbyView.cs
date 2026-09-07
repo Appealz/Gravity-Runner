@@ -38,6 +38,13 @@ public class LobbyView : MonoBehaviour
 
     private bool _isLoading = false;
 
+    [SerializeField] private GameObject guestStart;
+    [SerializeField] private Button guestStartBtn;
+    [SerializeField] private Button guestCancelBtn;
+
+    public Button GuestStartBtn => guestStartBtn;
+    public Button GuestCancelBtn => guestCancelBtn;
+
     public void Init()
     {
         playBtn = GameObject.Find("PlayBtn").GetComponent<Button>();
@@ -82,20 +89,24 @@ public class LobbyView : MonoBehaviour
 
     public void RefreshLoginUI()
     {
-        // 로딩 중일 때는 닉네임 정보를 덮어쓰지 않도록 방어
-        if (_isLoading) return;
+        if (_isLoading)
+            return;
 
-        bool isAuthenticated = PlayGamesPlatform.Instance.IsAuthenticated();
-        var btnText = loginBtn.GetComponentInChildren<TextMeshProUGUI>();
+        bool isGoogleUser =
+            GPGSManager.Instance != null &&
+            GPGSManager.Instance.IsGoogleUser;
 
-        // 3번 항목: 왼쪽 상단 닉네임 출력
+        var btnText =
+            loginBtn.GetComponentInChildren<TextMeshProUGUI>();
+
         if (AccountManager.Instance.currentAccountData != null)
         {
-            nickNameText.text = AccountManager.Instance.currentAccountData.nickname;
+            nickNameText.text =
+                AccountManager.Instance.currentAccountData.nickname;
         }
 
-        // 4번 항목: 로그인 상태에 따라 버튼 텍스트 변경
-        btnText.text = isAuthenticated ? "Switch Account" : "Google Login";
+        btnText.text =
+            isGoogleUser ? "Switch Account" : "Google Login";
     }
 
     public void SetBGMVolume(float volume)
@@ -150,6 +161,16 @@ public class LobbyView : MonoBehaviour
     public bool IsExitActive()
     {
         return exitImage.activeSelf; // exitPanel은 Exit UI GameObject
+    }
+
+    public void ShowGuestStart()
+    {
+        guestStart.SetActive(true);
+    }
+
+    public void HideGuestStart()
+    {
+        guestStart.SetActive(false);
     }
 
     public void ShowCharacterSelect()

@@ -75,32 +75,78 @@ public class GameOverPresenter
         view.Show(e.finalScore, e.highScore, model.CanRevive, model.ReviveChance, e.isNew);
     }
 
-    private void OnRestart()
+    private async void OnRestart()
     {
-        // 1. 시간 정상화 (가장 중요)
-        Time.timeScale = 1f;
+        bool validRun =
+            PlaySessionManager.Instance.EndRun();
 
-        // 2. 현재 화면의 장애물 싹 제거
-        if (GameManager.Instance.ObstacleSpawner != null)
+
+        // 점수 확정
+        ScoreManager scoreManager =
+            GameManager.Instance.GetManager<ScoreManager>();
+
+
+        if (scoreManager != null)
         {
-            GameManager.Instance.ObstacleSpawner.ClearAllObstacles();
-            GameManager.Instance.ObstacleSpawner.SetRunning(false);
+            await scoreManager.FinalizeRunScore(validRun);
         }
 
-        // 3. 모델 리셋 및 씬 로드
+
+        // 골드 확정
+        await CurrencyManager.Instance
+            .FinalizeRunCoin(validRun);
+
+
+        Time.timeScale = 1f;
+
+
+        if (GameManager.Instance.ObstacleSpawner != null)
+        {
+            GameManager.Instance.ObstacleSpawner
+                .ClearAllObstacles();
+
+            GameManager.Instance.ObstacleSpawner
+                .SetRunning(false);
+        }
+
+
         model.Reset();
+
         view.Hide();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
+
+        SceneManager.LoadScene(
+            SceneManager.GetActiveScene().buildIndex);
     }
 
-    private void OnReturnLobby()
+    private async void OnReturnLobby()
     {
+        bool validRun =
+            PlaySessionManager.Instance.EndRun();
+
+
+        ScoreManager scoreManager =
+            GameManager.Instance.GetManager<ScoreManager>();
+
+
+        if (scoreManager != null)
+        {
+            await scoreManager.FinalizeRunScore(validRun);
+        }
+
+
+        await CurrencyManager.Instance
+            .FinalizeRunCoin(validRun);
+
 
         SceneManager.LoadScene("LobbyScene");
     }
-
     public void Dispose()
     {
         EventBus.Unsubscribe<FinalScoreEvent>(OnGameOverEvent);
+
+        view.ContinueBtn.onClick.RemoveListener(OnAdContinue);
+        view.ReturnBtn.onClick.RemoveListener(OnReturnLobby);
+        view.RestartBtn.onClick.RemoveListener(OnRestart);
     }
 }

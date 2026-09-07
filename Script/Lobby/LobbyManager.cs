@@ -79,35 +79,6 @@ public class LobbyManager : DestroySingleton<LobbyManager>
 
     private async UniTask InitCharacterSystem()
     {
-        ////  이미 캐시되어 있으면 재초기화 생략
-        //if (!CharacterDataManager.Instance.HasCache)
-        //{
-        //    characterModel = new CharacterModel();
-        //    await characterModel.Initialize();
-        //    CharacterDataManager.Instance.CacheFrom(characterModel);
-        //    Debug.Log("[LobbyManager] 캐릭터 데이터 최초 로드 및 캐싱 완료");
-        //}
-        //else
-        //{
-        //    Debug.Log("[LobbyManager] 기존 캐시 사용");
-        //}
-
-        ////  캐릭터 버튼 초기화
-        //var characters = new List<CharacterRuntimeData>(CharacterDataManager.Instance.GetAll());
-        //await characterView.Init(characters);
-
-        ////  Presenter 연결
-        //characterPresenter = new CharacterPresenter(characterModel, characterView);
-
-        //// 선택 캐릭터 복원
-        //var selectedId = AccountManager.Instance.currentAccountData.selectedCharacterId;
-        //var selectedData = CharacterDataManager.Instance.Get(selectedId);
-        //if (selectedData != null)
-        //{
-        //    characterView.UpdateSelectedCharacter(selectedData.BaseData.icon);
-        //    Debug.Log($"[LobbyManager] 선택 캐릭터 복원 완료: {selectedData.BaseData.displayName}");
-        //}
-
         characterModel = new CharacterModel();
         await characterModel.Initialize();
         CharacterDataManager.Instance.CacheFrom(characterModel);
@@ -115,24 +86,25 @@ public class LobbyManager : DestroySingleton<LobbyManager>
         await characterView.Init(new List<CharacterRuntimeData>(characterModel.Characters));
 
         characterPresenter = new CharacterPresenter(characterModel, characterView);
-
-        //  Presenter 등록 후에 복원 실행
         var selectedId = AccountManager.Instance.currentAccountData.selectedCharacterId;
+
         var selectedData = CharacterDataManager.Instance.Get(selectedId);
+
         if (selectedData != null)
         {
             characterView.UpdateSelectedCharacter(selectedData.BaseData.icon);
-            Debug.Log($"[LobbyManager] 선택 캐릭터 복원 완료: {selectedData.BaseData.displayName}");
+
+            Debug.Log($"[LobbyManager] 선택 캐릭터 복원 완료: " + $"{selectedData.BaseData.displayName}");
         }
 
-        Debug.Log("[LobbyManager] 캐릭터 선택 시스템 초기화 완료 ");
-
+        Debug.Log("[LobbyManager] 캐릭터 선택 시스템 초기화 완료");
     }
 
     private void OnDisable()
     {
-        lobbyPresenter.Dispose();
-        characterPresenter.Dispose();
+        lobbyPresenter?.Dispose();
+        characterPresenter?.Dispose();
+        rankPresenter?.Dispose();
     }
 
 }

@@ -186,19 +186,28 @@ public class GameManager : DestroySingleton<GameManager>
 
     public void GameStart()
     {
-        if (player == null) return;
+        if (player == null)
+            return;
+
+
+        // 이번 한 판의 유효성 시작
+        PlaySessionManager.Instance.BeginRun();
+
+        // 이번 한 판에서 획득할 임시 골드 초기화
+        CurrencyManager.Instance.BeginRunCoin();
+
 
         isGameStart = true;
         State = GameState.Playing;
 
-        // 매니저들 구동
         scrollManager.SetRunning(true);
         platformSpawnManager.SetRunning(true);
         obstacleSpawner.SetRunning(true);
 
-        // 플레이어 초기화 (여기서 Init을 호출하면 중력이 0이 됨)
         player.Init();
+
         scoreManager.SetEnable(true);
+
         soundManager.PlayBGM(gameBGM);
     }
 
@@ -236,17 +245,28 @@ public class GameManager : DestroySingleton<GameManager>
     private async void OnGameOver(GameOverEvent e)
     {
         scoreManager.SetEnable(false);
+
         State = GameState.GameOver;
-        isGameStart = false;        
+        isGameStart = false;
+
         Debug.Log("게임 오버");
-        
-        Time.timeScale = 0f; // GameStop() 호출 대신 명시적 제어
+
+        Time.timeScale = 0f;
+
         player.Pause();
         soundManager.PauseBGM();
 
-        await UniTask.Delay(1000, ignoreTimeScale: true);        
+
+        await UniTask.Delay(
+            1000,
+            ignoreTimeScale: true);
+
+
+        // 게임오버 UI 표시용 점수 처리는 유지
         scoreManager.PublishFinalScore();
-        CurrencyManager.Instance.ResultCoin();
+
+        // 여기서는 더 이상 골드를 확정하지 않는다.
+        // 사용자가 광고 부활을 할 수도 있기 때문.
     }
 
     private void OnGamePause(OnPauseEvent e)

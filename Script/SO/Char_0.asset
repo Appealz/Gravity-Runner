@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84d2f2b170256994dabad01e76126c56, type: 3}
+  m_Name: Char_0
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterData
+  id: Char_0
+  displayName: Char_0
+  description: Normal Character
+  icon: {fileID: -3763807362677290057, guid: 13eb11da92463a940877287322cd4749, type: 3}
+  prefab: {fileID: 0}
+  price: 0
+  defaultUnlocked: 1
