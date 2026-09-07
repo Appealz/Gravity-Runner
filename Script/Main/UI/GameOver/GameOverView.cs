@@ -37,8 +37,7 @@ public class GameOverView : MonoBehaviour
 
     public void SetContinueChance(int chance)
     {
-        continuCountText.text = $"x {chance}";
-        //continueBtn.interactable = chance > 0;
+        continuCountText.text = $"x {chance}";        
     }
 
     public void Show(float newScore, float newHighScore, bool canRevive, int reviveChance, bool isNew)
@@ -75,9 +74,7 @@ public class GameOverView : MonoBehaviour
         continueBtn.interactable = isInteractable;
 
         if (shouldBlink && continueBtnImage != null)
-        {
-            // 0.7(최소) ~ 1.0(최대) 사이를 왕복하는 알파값 계산
-            // Sin 함수는 -1 ~ 1을 반환하므로, 이를 0.7 ~ 1.0으로 변환합니다.
+        {            
             float lerpTime = (Mathf.Sin(Time.unscaledTime * 4.5f) + 1f) / 2f; // 0 ~ 1
             float alpha = Mathf.Lerp(0.5f, 1f, lerpTime);
 

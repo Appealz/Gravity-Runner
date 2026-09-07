@@ -94,11 +94,8 @@ public class Player : MonoBehaviour
     {
         if (GameManager.Instance.State == GameState.Ready)
             HandleReadyPosition();
-
-        // 1. 위치 이탈 시 복귀 로직 (리팩토링: 메서드 분리)
-        HandlePositionRecovery();
-
-        // 2. 주입된 능력의 업데이트 실행
+                
+        HandlePositionRecovery();        
         _ability?.OnUpdate();
 
     }
@@ -157,20 +154,17 @@ public class Player : MonoBehaviour
         }
     }
 
-    // --- 게임 상태 제어 ---
-
     public void Init()
     {
         if (rb == null) rb = GetComponent<Rigidbody2D>();
         if (playerInputSystem == null) playerInputSystem = new PlayerInputSystem();
-
-        // [수정] 게임 시작 시점에 중력과 파티클을 가동합니다.
-        rb.gravityScale = defaultGravity; // 기본 중력값(3f) 복구
+                
+        rb.gravityScale = defaultGravity; 
         rb.linearVelocity = Vector2.zero;
 
         if (trailParticle != null)
         {
-            trailParticle.Play(); // 트레일 재생 시작
+            trailParticle.Play(); 
         }
 
         playerInputSystem.Player.Enable();
@@ -198,13 +192,7 @@ public class Player : MonoBehaviour
             return;
         }
 
-        HandleGravityInversion();
-
-        // 사운드 로직
-        //if (rb.gravityScale > 0)
-        //    SoundManager.Instance.PlaySFX("PlayerDown");   // 천장에서 바닥으로
-        //else
-        //    SoundManager.Instance.PlaySFX("PlayerUp");     // 바닥에서 천장으로
+        HandleGravityInversion();         
     }
 
     private void HandleGravityInversion()
@@ -214,8 +202,7 @@ public class Player : MonoBehaviour
         rb.linearVelocity = new Vector2(0f, rb.gravityScale > 0 ? -moveSpeed : moveSpeed);
 
         sr.flipY = rb.gravityScale < 0;
-
-        // 트레일 파티클 위치 조정
+                
         if (trailParticle != null)
         {
             Vector3 pos = defaultTrailLocalPos;
@@ -234,18 +221,14 @@ public class Player : MonoBehaviour
     {
         playerInputSystem.Player.Enable();
     }
-
-
-
-    // --- 충돌 판정 (핵심 리팩토링) ---
+                
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (isDead || isInvincible) return;
 
         if (collision.CompareTag("DeadZone")) GameOver();
         else if (collision.CompareTag("Obstacle"))
-        {
-            // Execute를 실행하고 그 결과가 true(방어성공)면 GameOver를 넘김
+        {            
             if (_ability != null && _ability.Execute()) return;
 
             GameOver();
@@ -287,25 +270,21 @@ public class Player : MonoBehaviour
     }
 
     public void Revive()
-    {
-        // 1. 위치 및 상태 초기화
+    {        
         PlayerStartPosition();
         sr.enabled = true;
         rb.simulated = true;
         col.enabled = true;
         sr.flipY = false;
-        isDead = false; // Init 대신 여기서 직접 초기화
-
-        // 2. 물리 정지 (첫 터치 대기 상태)
+        isDead = false; 
+                
         rb.gravityScale = 0f;
         rb.linearVelocity = Vector2.zero;
         waitingForFirstInput = true;
-
-        // 3. 입력 시스템 활성화 (터치 가능하게)
+                
         if (playerInputSystem == null) playerInputSystem = new PlayerInputSystem();
         playerInputSystem.Player.Enable();
-
-        // 4. 무적 효과 시작
+                
         TriggerInvincible(3f).Forget();
     }
 

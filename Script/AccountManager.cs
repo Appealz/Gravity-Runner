@@ -43,8 +43,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
         }
     }
 
-
-    // [수정] 수동으로 true/false를 넣지 않고, ID를 보고 자동으로 판정합니다.
+        
     public bool IsGuestAccount =>
         currentAccountData == null ||
         string.IsNullOrEmpty(currentAccountData.acountID) ||
@@ -63,7 +62,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
         Debug.Log($"[Account] 데이터 갱신 완료: {accountData.nickname}");
     }
 
-    // [추가] 리더보드 점수와 동기화할 때 사용할 메서드
+    
     public void UpdateBestScore(int newScore)
     {
         if (currentAccountData == null) return;
@@ -77,10 +76,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
     public async UniTask<bool> LoadFromCloud()
     {
         IsLoaded = false;
-
-
-        // Google 인증이 없는 상태에서
-        // Google Cloud를 읽으려고 한 경우
+                        
         if (!PlayGamesPlatform.Instance.IsAuthenticated())
         {
             Debug.LogWarning(
@@ -96,66 +92,48 @@ public class AccountManager : DontDestroySingleton<AccountManager>
 
         switch (result.Status)
         {
-            // =========================================
-            // 기존 Cloud 데이터가 정상적으로 존재
-            // =========================================
             case CloudReadStatus.Success:
-                {
-                    ApplyLoadedData(result.Data);
+            {
+                ApplyLoadedData(result.Data);
 
-                    IsLoaded = true;
+                IsLoaded = true;
 
-                    Debug.Log(
-                        "[Account] 기존 Google Cloud 데이터 로드 완료");
+                Debug.Log(
+                    "[Account] 기존 Google Cloud 데이터 로드 완료");
 
-                    return true;
-                }
+                return true;
+            }
 
-
-            // =========================================
-            // Cloud 접근은 성공했지만 데이터가 없음
-            // → 진짜 신규 Google 계정
-            // =========================================
             case CloudReadStatus.NoData:
+            {
+                if (currentAccountData == null)
                 {
-                    // ProcessAuthenticationSuccess()에서
-                    // 이미 new AccountData(id, name)를 만들어놓았기 때문에
-                    // 그것을 그대로 사용한다.
-
-                    if (currentAccountData == null)
-                    {
-                        Debug.LogError(
-                            "[Account] 신규 Google 계정 데이터가 준비되지 않았습니다.");
-
-                        return false;
-                    }
-
-
-                    SaveLocalBackup();
-
-                    IsLoaded = true;
-
-                    Debug.Log(
-                        "[Account] 신규 Google 계정으로 시작합니다.");
-
-                    return true;
-                }
-
-
-            // =========================================
-            // Cloud 읽기 실패
-            // =========================================
-            case CloudReadStatus.Failed:
-            default:
-                {
-                    // 여기서 절대로 새 Google 데이터를 저장하지 않는다.
-                    // 기존 Cloud 데이터가 존재할 수도 있기 때문.
-
-                    Debug.LogWarning(
-                        "[Account] Cloud 데이터 로드 실패");
+                    Debug.LogError(
+                        "[Account] 신규 Google 계정 데이터가 준비되지 않았습니다.");
 
                     return false;
                 }
+
+
+                SaveLocalBackup();
+
+                IsLoaded = true;
+
+                Debug.Log(
+                    "[Account] 신규 Google 계정으로 시작합니다.");
+
+                return true;
+            }
+
+            case CloudReadStatus.Failed:
+            default:
+            {             
+
+                Debug.LogWarning(
+                    "[Account] Cloud 데이터 로드 실패");
+
+                return false;
+            }
         }
     }
 
@@ -180,80 +158,47 @@ public class AccountManager : DontDestroySingleton<AccountManager>
                 {
                     if (status != SavedGameRequestStatus.Success)
                     {
-                        Debug.LogWarning(
-                            $"[Account] Cloud 파일 열기 실패: {status}");
-
-                        tcs.TrySetResult(
-                            new CloudReadResult(
-                                CloudReadStatus.Failed));
-
+                        Debug.LogWarning($"[Account] Cloud 파일 열기 실패: {status}");
+                        tcs.TrySetResult(new CloudReadResult(CloudReadStatus.Failed));
                         return;
                     }
 
-                    PlayGamesPlatform.Instance.SavedGame
-                        .ReadBinaryData(
-                            game,
-                            (readStatus, data) =>
+                    PlayGamesPlatform.Instance.SavedGame.ReadBinaryData(game,(readStatus, data) =>
+                    {
+                        if (readStatus != SavedGameRequestStatus.Success)
+                        {
+                            Debug.LogWarning($"[Account] Cloud 데이터 읽기 실패: {readStatus}");
+                            tcs.TrySetResult(new CloudReadResult(CloudReadStatus.Failed));
+                            return;
+                        }
+
+                        if (data == null || data.Length == 0)
+                        {
+                            Debug.Log("[Account] Cloud 저장 데이터가 없습니다.");
+                            tcs.TrySetResult(new CloudReadResult(CloudReadStatus.NoData));
+                            return;
+                        }
+
+                        try
+                        {
+                            string json = Encoding.UTF8.GetString(data);
+                            AccountData accountData = JsonUtility.FromJson<AccountData>(json);
+
+                            if (accountData == null)
                             {
-                                if (readStatus != SavedGameRequestStatus.Success)
-                                {
-                                    Debug.LogWarning(
-                                        $"[Account] Cloud 데이터 읽기 실패: {readStatus}");
+                                Debug.LogWarning("[Account] Cloud JSON 변환 실패");
+                                tcs.TrySetResult(new CloudReadResult(CloudReadStatus.Failed));
+                                return;
+                            }
 
-                                    tcs.TrySetResult(
-                                        new CloudReadResult(
-                                            CloudReadStatus.Failed));
-
-                                    return;
-                                }
-
-                                if (data == null || data.Length == 0)
-                                {
-                                    Debug.Log(
-                                        "[Account] Cloud 저장 데이터가 없습니다.");
-
-                                    tcs.TrySetResult(
-                                        new CloudReadResult(
-                                            CloudReadStatus.NoData));
-
-                                    return;
-                                }
-
-                                try
-                                {
-                                    string json =
-                                        Encoding.UTF8.GetString(data);
-
-                                    AccountData accountData =
-                                        JsonUtility.FromJson<AccountData>(json);
-
-                                    if (accountData == null)
-                                    {
-                                        Debug.LogWarning(
-                                            "[Account] Cloud JSON 변환 실패");
-
-                                        tcs.TrySetResult(
-                                            new CloudReadResult(
-                                                CloudReadStatus.Failed));
-
-                                        return;
-                                    }
-
-                                    tcs.TrySetResult(
-                                        new CloudReadResult(
-                                            CloudReadStatus.Success,
-                                            accountData));
-                                }
-                                catch (System.Exception e)
-                                {
-                                    Debug.LogError(
-                                        $"[Account] Cloud 데이터 파싱 실패: {e.Message}");
-
-                                    tcs.TrySetResult(
-                                        new CloudReadResult(
-                                            CloudReadStatus.Failed));
-                                }
-                            });
+                            tcs.TrySetResult(new CloudReadResult(CloudReadStatus.Success,accountData));
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogError($"[Account] Cloud 데이터 파싱 실패: {e.Message}");
+                            tcs.TrySetResult(new CloudReadResult(CloudReadStatus.Failed));
+                        }
+                    });
                 });
 
         return await tcs.Task;
@@ -265,10 +210,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
 
         if (guestData == null)
         {
-            guestData = new AccountData(
-                "Guest_" + System.Guid.NewGuid().ToString(),
-                "Guest Player");
-
+            guestData = new AccountData("Guest_" + System.Guid.NewGuid().ToString(),"Guest Player");
             Debug.Log("[Account] 신규 Guest 데이터를 생성했습니다.");
         }
         else
@@ -320,14 +262,11 @@ public class AccountManager : DontDestroySingleton<AccountManager>
 
         if (cloudData.unlockedCharacterIds != null)
         {
-            currentAccountData.unlockedCharacterIds =
-                new System.Collections.Generic.List<string>(
-                    cloudData.unlockedCharacterIds);
+            currentAccountData.unlockedCharacterIds = new System.Collections.Generic.List<string>(cloudData.unlockedCharacterIds);
         }
         else
         {
-            currentAccountData.unlockedCharacterIds =
-                new System.Collections.Generic.List<string>();
+            currentAccountData.unlockedCharacterIds = new System.Collections.Generic.List<string>();
         }
 
         if (!currentAccountData.unlockedCharacterIds.Contains("Char_0"))
@@ -383,7 +322,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
                             return;
                         }
 
-                        var update =
+                        var update = 
                             new SavedGameMetadataUpdate.Builder()
                                 .WithUpdatedDescription(
                                     "Saved at " + System.DateTime.Now)
@@ -396,9 +335,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
                                 bytes,
                                 (saveStatus, _) =>
                                 {
-                                    tcs.TrySetResult(
-                                        saveStatus ==
-                                        SavedGameRequestStatus.Success);
+                                    tcs.TrySetResult(saveStatus == SavedGameRequestStatus.Success);
                                 });
                     });
 
@@ -417,9 +354,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
         }
         catch (System.Exception e)
         {
-            Debug.LogError(
-                $"[Account] Cloud 저장 중 예외: {e.Message}");
-
+            Debug.LogError($"[Account] Cloud 저장 중 예외: {e.Message}");
             return false;
         }
         finally
@@ -449,14 +384,11 @@ public class AccountManager : DontDestroySingleton<AccountManager>
 
             File.WriteAllText(path, json);
 
-            Debug.Log(
-                $"[Account] 로컬 백업 완료: " +
-                $"{(isGuestData ? "Guest" : "Google")}");
+            Debug.Log($"[Account] 로컬 백업 완료: " + $"{(isGuestData ? "Guest" : "Google")}");
         }
         catch (System.Exception e)
         {
-            Debug.LogError(
-                $"[Account] 로컬 백업 실패: {e.Message}");
+            Debug.LogError($"[Account] 로컬 백업 실패: {e.Message}");
         }
     }
 
@@ -482,13 +414,11 @@ public class AccountManager : DontDestroySingleton<AccountManager>
             {
                 if (success)
                 {
-                    Debug.Log(
-                        $"[Account] 리더보드 점수 등록 성공: {score}");
+                    Debug.Log($"[Account] 리더보드 점수 등록 성공: {score}");
                 }
                 else
                 {
-                    Debug.LogWarning(
-                        "[Account] 리더보드 점수 등록 실패");
+                    Debug.LogWarning("[Account] 리더보드 점수 등록 실패");
                 }
             });
     }
@@ -505,8 +435,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
         }
         catch (System.Exception e)
         {
-            Debug.LogError(
-                $"[Account] 로컬 백업 읽기 실패: {e.Message}");
+            Debug.LogError($"[Account] 로컬 백업 읽기 실패: {e.Message}");
 
             return null;
         }
@@ -525,8 +454,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
         }
         catch (System.Exception e)
         {
-            Debug.LogError(
-                $"[Account] Guest 로컬 백업 읽기 실패: {e.Message}");
+            Debug.LogError($"[Account] Guest 로컬 백업 읽기 실패: {e.Message}");
 
             return null;
         }
@@ -539,8 +467,7 @@ public class AccountManager : DontDestroySingleton<AccountManager>
     }
 
     private void OnApplicationQuit()
-    {
-        // 게임 종료 시 현재까지의 데이터를 로컬에 안전하게 남깁니다.
+    {        
         SaveLocalBackup();
     }  
 

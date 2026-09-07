@@ -9,15 +9,6 @@ public static class AddressableLoader
     // 공통 Generic 로더
     private static async UniTask<T> LoadAssetAsync<T>(string key) where T : UnityEngine.Object
     {
-        //await Addressables.InitializeAsync().ToUniTask();
-
-        //var handle = Addressables.LoadAssetAsync<T>(key);
-        //T asset = await handle.Task;
-
-        //if (asset == null)
-        //    Debug.LogWarning($"[AddressableLoader] {key} ({typeof(T).Name}) is missing!");
-
-        //return asset;
 
         try
         {

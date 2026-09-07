@@ -33,8 +33,7 @@ public class Coin : PoolLabel
             particle.Play();
             Destroy(particle.gameObject, particle.main.duration + particle.main.startLifetime.constantMax);
         }
-
-        // todo : 이벤트 버스 발행
+                
         EventBus.Publish(new OnChangeCoin(1));
 
         ReturnPool();

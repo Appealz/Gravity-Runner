@@ -25,8 +25,7 @@ public class PlatformSpawner : BaseManager
     
 
     public override async UniTask Initialize()
-    {
-        //Debug.Log(camLeftPos);
+    {        
         mover = FindAnyObjectByType<PlatformMover>();
         if (mover != null)
         {

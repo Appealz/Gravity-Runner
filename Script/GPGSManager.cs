@@ -37,8 +37,7 @@ public class GPGSManager : DontDestroySingleton<GPGSManager>
 
     private async void Start()
     {
-        await UniTask.Delay(500);
-        // 1번 항목: 게임 실행 시 자동 로그인 시도
+        await UniTask.Delay(500);        
         await StartLoginFlow();
     }
 
@@ -50,7 +49,6 @@ public class GPGSManager : DontDestroySingleton<GPGSManager>
         _isAuthenticating = true;
         CurrentLoginState = LoginState.Authenticating;
 
-        // 우선 기존 3초에서 10초로 늘림
         SignInStatus status = await AuthenticateAsync(isManual: true);
 
         if (status == SignInStatus.Success ||
@@ -134,10 +132,8 @@ public class GPGSManager : DontDestroySingleton<GPGSManager>
         }
     }
 
-    // --- [복구] 이미지 d4b36b, d6e680의 에러를 해결하는 메서드 ---
     public bool IsNetworkConnected()
-    {
-        // 인터넷 연결 상태 확인 (기존에 사용하시던 로직 복구)
+    {        
         return Application.internetReachability != NetworkReachability.NotReachable;
     }
 
@@ -283,12 +279,10 @@ public class GPGSManager : DontDestroySingleton<GPGSManager>
         Debug.Log("[GPGS] Guest 모드로 진입했습니다.");
     }
 
-    // [추가] 리더보드 서버 점수를 가져와서 로컬 데이터와 동기화하는 함수
     private async UniTask SyncLeaderboardScore()
     {
         var tcs = new UniTaskCompletionSource<bool>();
-
-        // GPGSIds.leaderboard_bestscore는 어필님의 리더보드 ID입니다.
+                
         PlayGamesPlatform.Instance.LoadScores(
             GPGSIds.leaderboard_bestscore,
             LeaderboardStart.PlayerCentered,
@@ -298,8 +292,7 @@ public class GPGSManager : DontDestroySingleton<GPGSManager>
             (data) => {
                 if (data.Valid && data.PlayerScore != null)
                 {
-                    int serverScore = (int)data.PlayerScore.value;
-                    // 리더보드 점수(1012)가 현재 로컬 점수(383)보다 높으면 갱신!
+                    int serverScore = (int)data.PlayerScore.value;                    
                     AccountManager.Instance.UpdateBestScore(serverScore);
                 }
                 tcs.TrySetResult(true);

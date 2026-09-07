@@ -10,8 +10,7 @@ public class PauseModel
     public bool isVibrationOn { get; private set; }
 
     public PauseModel()
-    {
-        // 씬 진입 시 SoundManager 값 동기화
+    {        
         bgmVolume = SoundManager.Instance.BGMVolume;
         sfxVolume = SoundManager.Instance.SFXVolume;
     }

@@ -57,7 +57,7 @@ public class ScoreManager : BaseManager
 
         timer += Time.deltaTime;
 
-        // 프레임 드랍 보정: 1초마다 점수 누적
+        // 누적된 경과 시간을 1초 단위로 점수에 반영
         while (timer >= 1f)
         {
             timer -= 1f;
@@ -72,8 +72,7 @@ public class ScoreManager : BaseManager
     private void OnRequestAddScore(RequestAddScoreEvent evt)
     {
         totalScore += evt.amount;
-
-        // 현재 UI 갱신을 AddScoreEvent가 담당하고 있으니 이를 통해 알립니다.
+                
         EventBus.Publish(new AddScoreEvent(totalScore));
 
         Debug.Log($"[ScoreManager] 보너스 점수 반영 완료: {evt.amount}");
@@ -93,13 +92,7 @@ public class ScoreManager : BaseManager
         bool isNewHigh =
             finalScore > highScore;
 
-
-        // ============================================
-        // Guest
-        //
-        // 랭킹에는 절대 등록하지 않지만
-        // Guest 전용 로컬 최고점수는 저장 가능
-        // ============================================
+      
         if (GPGSManager.Instance != null &&
             GPGSManager.Instance.IsGuest)
         {
@@ -134,12 +127,6 @@ public class ScoreManager : BaseManager
         }
 
 
-        // ============================================
-        // Google 플레이
-        //
-        // 아직 실제 저장은 하지 않는다.
-        // 현재 GameOver UI에 보여줄 값만 계산한다.
-        // ============================================
         bool validRun =
             PlaySessionManager.Instance != null &&
             PlaySessionManager.Instance.IsRunActive &&
@@ -185,9 +172,6 @@ public class ScoreManager : BaseManager
             Mathf.Floor(totalScore);
 
 
-        // ============================================
-        // Invalid / Guest 판은 Google 기록 금지
-        // ============================================
         if (!validRun ||
             GPGSManager.Instance == null ||
             !GPGSManager.Instance.IsGoogleUser ||
@@ -208,8 +192,6 @@ public class ScoreManager : BaseManager
             return;
 
 
-        // 기존 최고점수를 못 넘었으면
-        // 저장할 점수 변화가 없음
         if (finalScore <= highScore)
         {
             Debug.Log(
@@ -227,24 +209,16 @@ public class ScoreManager : BaseManager
             account.bestScore;
 
 
-        // ============================================
-        // 새로운 최고점수 메모리에 반영
-        // ============================================
         highScore = finalScore;
         account.bestScore = (long)finalScore;
 
-
-        // ============================================
-        // Cloud 저장
-        // ============================================
         bool saveSuccess =
             await AccountManager.Instance.SaveToCloud();
 
 
         if (!saveSuccess)
         {
-            // Cloud에 기록하지 못했으므로
-            // Google 계정 데이터도 이전 상태로 복구
+            // Cloud에 기록하지 못했으므로 Google 계정 데이터도 이전 상태로 복구
             highScore = previousHighScore;
             account.bestScore = previousAccountBest;
 
@@ -257,10 +231,6 @@ public class ScoreManager : BaseManager
             return;
         }
 
-
-        // ============================================
-        // Cloud 저장 성공 후에만 랭킹 등록
-        // ============================================
         AccountManager.Instance.ReportScoreToLeaderboard(
             (long)highScore);
 

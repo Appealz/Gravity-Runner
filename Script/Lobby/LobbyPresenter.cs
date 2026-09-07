@@ -109,9 +109,6 @@ public class LobbyPresenter
         if (GPGSManager.Instance.IsAuthenticating || !AccountManager.Instance.IsLoaded) return;
 
         SoundManager.Instance.PlaySFX("TouchOpen");
-
-        // [수정] 여기서 띄우던 게스트 토스트 로직을 아예 삭제하세요!
-        // 창만 열어주고, 판단은 RankPresenter에게 맡깁니다.
         view.ShowRank();
 
         var account = AccountManager.Instance.currentAccountData;
@@ -176,8 +173,7 @@ public class LobbyPresenter
     private async void OnClickLogin()
     {
         SoundManager.Instance.PlaySFX("TouchOpen");
-
-        // [보강] 이미 로딩 중이면 중복 클릭 방지
+                
         if (GPGSManager.Instance.IsAuthenticating) return;
 
         view.SetLoadingState(true);
@@ -197,8 +193,7 @@ public class LobbyPresenter
             }
         }
         finally
-        {
-            // [중요] 성공하든 실패하든, 에러가 나든 버튼은 무조건 다시 풀어준다!
+        {            
             view.SetLoadingState(false);
             view.RefreshLoginUI();
         }

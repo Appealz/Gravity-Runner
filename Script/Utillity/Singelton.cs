@@ -59,12 +59,6 @@ public class DestroySingleton<T> : MonoBehaviour where T : MonoBehaviour
                 if (instance == null)
                 {
                     instance = (T)FindAnyObjectByType(typeof(T));
-
-                    //if (instance == null)
-                    //{
-                    //    GameObject singletonObj = new GameObject(typeof(T).Name + " (DestroySingleton)");
-                    //    instance = singletonObj.AddComponent<T>();
-                    //}
                 }
                 return instance;
             }

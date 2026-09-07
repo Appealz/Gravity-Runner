@@ -27,7 +27,7 @@ public class CircleObstacle : PoolLabel
 
     private void Jump()
     {
-        rb.linearVelocity = Vector3.left * moveSpeed; // 수평 속도 고정
+        rb.linearVelocity = Vector3.left * moveSpeed; 
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 

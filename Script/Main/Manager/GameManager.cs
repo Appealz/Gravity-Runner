@@ -50,8 +50,7 @@ public class GameManager : DestroySingleton<GameManager>
     }
 
     private void FindAllManagers()
-    {
-        //player = FindAnyObjectByType<Player>();
+    {        
         cameraManager = FindAnyObjectByType<CameraManager>();
         platformSpawnManager = FindAnyObjectByType<PlatformSpawner>();
         scrollManager = FindAnyObjectByType<ScrollManager>();
@@ -67,8 +66,7 @@ public class GameManager : DestroySingleton<GameManager>
     {
         if (AccountManager.Instance?.currentAccountData == null) return;
         string selectedId = AccountManager.Instance.currentAccountData.selectedCharacterId;
-
-        // 만약 LoadToPrefab이 단순 로드라면 Instantiate를 해줘야 합니다.
+                
         GameObject prefab = await AddressableLoader.LoadToPrefab(selectedId);
         GameObject playerObj = Instantiate(prefab); // 실제 씬에 생성
 
@@ -264,9 +262,6 @@ public class GameManager : DestroySingleton<GameManager>
 
         // 게임오버 UI 표시용 점수 처리는 유지
         scoreManager.PublishFinalScore();
-
-        // 여기서는 더 이상 골드를 확정하지 않는다.
-        // 사용자가 광고 부활을 할 수도 있기 때문.
     }
 
     private void OnGamePause(OnPauseEvent e)

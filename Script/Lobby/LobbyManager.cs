@@ -32,16 +32,13 @@ public class LobbyManager : DestroySingleton<LobbyManager>
         }
 
         if (RemoteConfigManager.Instance.IsUpdateRequired())
-        {
-            // 어필님이 GPGSManager에 만들어두신 '토스트' 발동!
+        {            
             GPGSManager.Instance.ShowToast("버전이 낮아 게임을 이용할 수 없습니다. 업데이트 후 재실행해주세요.");
-
-            // 플레이스토어 열기
+            
             Application.OpenURL($"market://details?id={Application.identifier}");
-
-            // 유저가 다른 짓 못하게 앱 바로 끕니다.
+                        
             Application.Quit();
-            return; // 아래 초기화 로직(카메라, 사운드 등) 실행 안 함
+            return;
         }
 
 
@@ -49,8 +46,7 @@ public class LobbyManager : DestroySingleton<LobbyManager>
         cameraManager.Initialize();
 
         var lobbyBGM = await AddressableLoader.LoadToClip("LobbyBGM");
-
-        //  2. 중복 방지 (이미 같은 BGM이면 재생 안함)
+                
         if (SoundManager.Instance.bgmSource != lobbyBGM)
         {
             SoundManager.Instance.PlayBGM(lobbyBGM);

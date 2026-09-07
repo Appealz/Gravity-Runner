@@ -10,8 +10,7 @@ public class FadeManager : DestroySingleton<FadeManager>
     float fadeDuration = 1f;
 
     private void Awake()
-    {
-        //fadeImage = GameObject.Find("FadePanel").GetComponent<Image>();
+    {        
         fadeImage.raycastTarget = false;        
     }
 

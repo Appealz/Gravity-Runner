@@ -7,8 +7,7 @@ public class CurrencyManager : DontDestroySingleton<CurrencyManager>
     // 이미 계정에 확정되어 있는 골드
     private int coin;
 
-    // 현재 한 판에서 획득했지만
-    // 아직 계정에 확정되지 않은 골드
+    // 현재 한 판에서 획득했지만 아직 계정에 확정되지 않은 골드
     private int runCoin;
 
     public int GetCoin() => coin;
@@ -52,10 +51,6 @@ public class CurrencyManager : DontDestroySingleton<CurrencyManager>
         RefreshFromCurrentAccount();
     }
 
-    // ============================================
-    // 현재 로그인 계정의 골드를 다시 불러옴
-    // Guest → Google 수동 로그인 시에도 사용
-    // ============================================
     public void RefreshFromCurrentAccount()
     {
         runCoin = 0;
@@ -81,10 +76,6 @@ public class CurrencyManager : DontDestroySingleton<CurrencyManager>
             $"[CurrencyManager] 계정 골드 로드 완료: {coin}");
     }
 
-
-    // ============================================
-    // 실제 새로운 한 판이 시작될 때 호출
-    // ============================================
     public void BeginRunCoin()
     {
         runCoin = 0;
@@ -92,20 +83,11 @@ public class CurrencyManager : DontDestroySingleton<CurrencyManager>
         Debug.Log("[CurrencyManager] 이번 플레이 골드 초기화");
     }
 
-
-    // ============================================
-    // 게임 플레이 중 획득한 골드
-    // 아직 계정 골드에는 더하지 않는다.
-    // ============================================
     private void AddRunCoin(int amount)
     {
         if (amount <= 0)
             return;
-
-
-        // ============================================
-        // Guest는 골드를 획득할 수 없음
-        // ============================================
+         
         if (!GPGSManager.Instance.IsGoogleUser)
         {
             Debug.Log(
@@ -113,12 +95,7 @@ public class CurrencyManager : DontDestroySingleton<CurrencyManager>
 
             return;
         }
-
-
-        // ============================================
-        // Google 사용자라도
-        // 현재 판의 유효성이 깨졌다면 획득 불가
-        // ============================================
+              
         if (!PlaySessionManager.Instance.ValidateNow())
         {
             Debug.LogWarning(
@@ -134,11 +111,6 @@ public class CurrencyManager : DontDestroySingleton<CurrencyManager>
             $"[CurrencyManager] 플레이 골드 +{amount}, 임시 골드: {runCoin}");
     }
 
-
-    // ============================================
-    // 로비 등에서 계정 골드를 직접 변경할 때 사용
-    // 예: 캐릭터 구매
-    // ============================================
     public void ChangeCoin(int amount)
     {
         if (!GPGSManager.Instance.IsGoogleUser)
@@ -172,16 +144,6 @@ public class CurrencyManager : DontDestroySingleton<CurrencyManager>
         ChangeCoin(-amount);
     }
 
-
-    // ============================================
-    // 한 판이 완전히 끝났을 때 호출
-    //
-    // validRun == true
-    // → runCoin을 실제 계정 골드로 확정
-    //
-    // validRun == false
-    // → runCoin 전부 폐기
-    // ============================================
     public async UniTask FinalizeRunCoin(bool validRun)
     {
         if (!validRun ||
@@ -220,13 +182,6 @@ public class CurrencyManager : DontDestroySingleton<CurrencyManager>
         }
     }
 
-
-    // ============================================
-    // 기존 OnChangeCoin 이벤트 분기
-    //
-    // +값 + 플레이 중 → 게임 획득 골드
-    // 그 외          → 계정 골드 변경
-    // ============================================
     private void OnChangeCoinEvent(OnChangeCoin e)
     {
         if (e == null)
