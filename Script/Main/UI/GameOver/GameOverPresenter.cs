@@ -37,31 +37,24 @@ public class GameOverPresenter
     }
 
     public void Tick()
-    {
-        // 뷰가 꺼져있거나 타이머 대상이 아니면 리턴
+    {        
         if (!isTick || view == null || !view.gameObject.activeSelf) return;
 
-        // 현재 부활 기회가 있는지 확인
         bool hasChance = model.CanRevive;
         bool isAdReady = AdManager.Instance.IsAdReady();
-
-        // 1. 원격에서 광고가 꺼진 경우 (무료 부활 모드)
+                
         if (RemoteConfigManager.Instance != null && !RemoteConfigManager.Instance.IsAdEnabled)
-        {
-            // [수정] UpdateContinueUI 호출 (메시지, 버튼활성화, 깜빡임여부)
+        {            
             view.UpdateContinueUI("Free Revive!", hasChance, hasChance);
             return;
         }
-
-        // 2. 광고 활성화 상태일 때
+                
         if (isAdReady)
-        {
-            // [수정] 광고 준비 완료 시 깜빡임 활성화
+        {        
             view.UpdateContinueUI("Continue (Ad)", hasChance, hasChance);
         }
         else
-        {
-            // 쿨타임 중: 시간 표시, 버튼 비활성화, 깜빡임 중지
+        {         
             double remaining = AdManager.Instance.GetRemainingCooldownSeconds();
             int mins = (int)remaining / 60;
             int secs = (int)remaining % 60;
@@ -71,7 +64,7 @@ public class GameOverPresenter
 
     private void OnGameOverEvent(FinalScoreEvent e)
     {
-        isTick = true; // 타이머 시작
+        isTick = true; 
         view.Show(e.finalScore, e.highScore, model.CanRevive, model.ReviveChance, e.isNew);
     }
 

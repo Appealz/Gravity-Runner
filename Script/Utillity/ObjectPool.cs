@@ -47,15 +47,13 @@ public class ObjectPool
     }
 
     public void PushObject(GameObject obj)
-    {
-        // 입력받은 오브젝트에서 PoolLabel 컴포넌트를 찾아 기존 메서드로 전달합니다.
+    {        
         if (obj.TryGetComponent<PoolLabel>(out PoolLabel label))
         {
             PushObject(label);
         }
         else
-        {
-            // 만약 PoolLabel이 없다면 풀링 대상이 아니므로 파괴합니다.
+        {            
             GameObject.Destroy(obj);
         }
     }

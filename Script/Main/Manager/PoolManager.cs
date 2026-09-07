@@ -27,21 +27,19 @@ public class PoolManager : DestroySingleton<PoolManager>
     {
         IsAllPoolsReady = false;
 
-        // 1. 일반 풀 생성 대기
         await UniTask.WhenAll(
             CreatePools("Square", 5),
             CreatePools("Circle", 5),
             CreatePools("Coin", 10)
         );
 
-        // 2. 모든 플랫폼 청크 로딩 대기 (Forget 금지)
         List<UniTask> tasks = new List<UniTask>();
         foreach (ChunkType type in System.Enum.GetValues(typeof(ChunkType)))
         {
             tasks.Add(CreatePlatformPools(type));
         }
 
-        await UniTask.WhenAll(tasks); // 9개 청크가 모두 딕셔너리에 들어올 때까지 대기
+        await UniTask.WhenAll(tasks); 
 
         IsAllPoolsReady = true;
         Debug.Log("[PoolManager] 모든 플랫폼 풀 준비 완료!");

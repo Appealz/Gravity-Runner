@@ -32,8 +32,7 @@ public class RankView : MonoBehaviour
         }
     }
     public void Clear()
-    {
-        // Destroy 대신 SetActive(false)로 변경
+    {        
         foreach (var item in rankList)
         {
             item.SetActive(false);

@@ -11,8 +11,7 @@ public class PoolLabel : MonoBehaviour
     }
 
     public void ReturnPool()
-    {
-        // todo        
+    {        
         myPool.PushObject(this);
     }
 }

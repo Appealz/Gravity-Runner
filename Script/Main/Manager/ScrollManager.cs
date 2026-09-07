@@ -11,7 +11,7 @@ public class ScrollManager : BaseManager
     private float targetSpeed;  // 이번 레벨에서 도달해야 할 최대 속도
 
     [Header("지수 가속 설정")]
-    [SerializeField] private float exponent = 1.1f; // 1.05~1.15 사이 추천
+    [SerializeField] private float exponent = 1.1f; 
     [SerializeField] private float maxSpeed = 30f;   // 물리적 한계치
 
     [Header("부드러운 가속 설정")]    

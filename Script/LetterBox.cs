@@ -38,11 +38,9 @@ public class LetterBox : MonoBehaviour
                 scaleWidth,
                 1f);
         }
-
-        // 기존처럼 게임 카메라를 21:9로 제한
+                
         cam.rect = rect;
-
-        // 남는 화면은 검은 UI로 확실하게 덮는다.
+                
         CreateBlackBars(rect);
     }
 

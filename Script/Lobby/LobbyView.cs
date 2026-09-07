@@ -56,12 +56,10 @@ public class LobbyView : MonoBehaviour
     }
 
     private void Update()
-    {
-        // 5번 항목: 로그인 중일 때 닉네임 위치의 텍스트 깜빡임 연출
+    {        
         if (_isLoading)
         {
-            Color color = nickNameText.color;
-            // 0.3(흐릿함) ~ 1.0(선명함) 사이를 왕복
+            Color color = nickNameText.color;            
             color.a = Mathf.PingPong(Time.time , 0.7f) + 0.3f;
             nickNameText.color = color;
         }
@@ -73,13 +71,11 @@ public class LobbyView : MonoBehaviour
         loginBtn.interactable = !isLoading; // 로그인 중에는 버튼 클릭 방지
 
         if (isLoading)
-        {
-            // 닉네임 대신 "Signing in..." 표시
+        {            
             nickNameText.text = "Signing in...";
         }
         else
-        {
-            // 로딩 종료 시 투명도 복구 및 UI 갱신
+        {         
             Color color = nickNameText.color;
             color.a = 1.0f;
             nickNameText.color = color;
