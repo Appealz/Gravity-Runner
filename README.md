@@ -87,9 +87,9 @@ Unity/C#으로 개발한 모바일 원터치 중력 반전 러너 게임입니�
 
 **관련 코드**
 
-- [`AccountData.cs`](Script/Account/AccountData.cs)
-- [`AccountManager.cs`](Script/Account/AccountManager.cs)
-- [`GPGSManager.cs`](Script/Account/GPGSManager.cs)
+- [`AccountData.cs`](Script/AccountData.cs)
+- [`AccountManager.cs`](Script/AccountManager.cs)
+- [`GPGSManager.cs`](Script/GPGSManager.cs)
 
 ### 3. Game Systems
 
@@ -101,20 +101,23 @@ Unity/C#으로 개발한 모바일 원터치 중력 반전 러너 게임입니�
 **관련 코드**
 
 - [`PoolManager.cs`](Script/Main/Manager/PoolManager.cs)
-- [`ObjectPool.cs`](Script/Utility/ObjectPool.cs)
-- [`EventBus.cs`](Script/Utility/EventBus.cs)
-- [`AddressableLoader.cs`](Script/Utility/AddressableLoader.cs)
+- [`ObjectPool.cs`](Script/Utillity/ObjectPool.cs)
+- [`EventBus.cs`](Script/Utillity/EventBus.cs)
+- [`AddressableLoader.cs`](Script/Utillity/AddressableLoader.cs)
 
 ## Repository Structure
 
 ```text
 Script/
-├─ Account/        # 계정 데이터, 로컬/클라우드 저장, GPGS
-├─ Lobby/          # 로비, 캐릭터 선택, 랭킹
-├─ Main/           # 게임 진행, 스폰, UI, 장애물
-├─ Player/         # 플레이어 및 캐릭터 능력
-├─ SO/             # ScriptableObject 데이터 정의
-├─ Utility/        # EventBus, ObjectPool, Addressables 등
+├─ AccountData.cs
+├─ AccountManager.cs
+├─ GPGSManager.cs
+├─ PlaySessionManager.cs
+├─ Lobby/                  # 로비, 캐릭터 선택, 랭킹
+├─ Main/                   # 게임 진행, 스폰, UI, 장애물
+├─ Player/                 # 플레이어 및 캐릭터 능력
+├─ SO/                     # ScriptableObject 데이터 정의
+├─ Utillity/               # EventBus, ObjectPool, Addressables, Remote Config 등
 └─ DontDestroySingleton/
 ```
 

@@ -25,7 +25,7 @@ public class AdManager : DontDestroySingleton<AdManager>
 #if UNITY_EDITOR
         Debug.Log("Editor: Pretend to load rewarded ad");
 #else
-        string adUnitId = "ca-app-pub-1089217184411841/3360289641"; 
+        string adUnitId = "YOUR_REWARDED_AD_UNIT_ID";
         AdRequest request = new AdRequest();
 
         RewardedAd.Load(adUnitId, request, (RewardedAd ad, LoadAdError error) =>
